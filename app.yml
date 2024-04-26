@@ -1,0 +1,26 @@
+# mysql配置
+addr: 127.0.0.1:3306
+user: root
+pass: 123456
+
+charset: utf8
+slave_id: 1001 #slave ID
+flavor: mysql #mysql or mariadb,默认mysql
+
+#目标类型
+target: mongodb # 支持redis、mongodb、elasticsearch、rocketmq、kafka、rabbitmq
+
+#mongodb连接配置
+mongodb_addrs: 10.136.134.218:27017
+mongodb_username: root
+mongodb_password: 123456
+
+#规则配置
+rule:
+  - schema: 同步测试
+    db: packit
+    table: testszeekr_env_status #表名称
+    order_by_column: id #排序字段，存量数据同步时不能为空
+    mongodb_database: test
+
+    mongodb_collection: test_env
