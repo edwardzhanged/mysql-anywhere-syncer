@@ -37,8 +37,9 @@ func (h *Handler) OnDDL(*replication.EventHeader, mysql.Position, *replication.Q
 // table命中config中的表，才会触发OnRow
 func (h *Handler) OnRow(rowsEvent *canal.RowsEvent) error {
 	h.updateQueue.mu.Lock()
-	fmt.Print("+++++++OnRow+++++++++")
+	fmt.Printf("+++++++OnRow+++++++++")
 	fmt.Printf("%+v\n", rowsEvent)
+	// 根据配置构造一个规则表，当event命中，执行插入MongoDB的操作
 	h.updateQueue.data = append(h.updateQueue.data, "row")
 	h.updateQueue.mu.Unlock()
 

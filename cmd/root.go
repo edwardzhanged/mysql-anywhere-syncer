@@ -32,6 +32,7 @@ func rootCmdRun(cmd *cobra.Command, args []string) {
 	services.ListenerService.Start()
 	viper.WatchConfig()
 	viper.OnConfigChange(func(e fsnotify.Event) {
+		global.Initialize()
 		services.ListenerService.Reload()
 		color.Yellowln("Config file changed:", e.Name)
 	})

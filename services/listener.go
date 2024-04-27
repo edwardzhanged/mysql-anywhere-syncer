@@ -5,7 +5,6 @@ import (
 	"mysql-mongodb-syncer/global"
 
 	"github.com/go-mysql-org/go-mysql/canal"
-	"github.com/go-mysql-org/go-mysql/mysql"
 )
 
 type Listener struct {
@@ -40,7 +39,11 @@ func NewListener() {
 
 func (l *Listener) Start() {
 	l.canal.SetEventHandler(l.handler)
-	err := l.canal.RunFrom(mysql.Position{})
+	pos, err := l.canal.GetMasterPos()
+	if err != nil {
+		log.Fatal(err)
+	}
+	err = l.canal.RunFrom(pos)
 	if err != nil {
 		log.Fatal(err)
 	}
