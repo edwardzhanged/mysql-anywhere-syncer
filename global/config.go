@@ -21,11 +21,17 @@ type Config struct {
 	MongodbPassword string `mapstructure:"mongodb_password"` //mongodb密码，默认为空
 }
 
-var GbConfig *Config
+var (
+	GbConfig *Config
+	RulesMap map[string]bool
+)
 
 func Initialize() {
 	GbConfig = &Config{}
 	if err := viper.Unmarshal(GbConfig); err != nil {
 		panic(err)
+	}
+	for _, rule := range GbConfig.RuleConfigs {
+		RulesMap[rule.Schema+"."+rule.Table] = true
 	}
 }

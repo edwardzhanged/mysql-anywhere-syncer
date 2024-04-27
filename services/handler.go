@@ -2,6 +2,7 @@ package services
 
 import (
 	"fmt"
+	"mysql-mongodb-syncer/global"
 	"sync"
 	"time"
 
@@ -40,8 +41,11 @@ func (h *Handler) OnRow(rowsEvent *canal.RowsEvent) error {
 	fmt.Printf("+++++++OnRow+++++++++")
 	fmt.Printf("%+v\n", rowsEvent)
 	// 根据配置构造一个规则表，当event命中，执行插入MongoDB的操作
-	h.updateQueue.data = append(h.updateQueue.data, "row")
-	h.updateQueue.mu.Unlock()
+	schemaTable := fmt.Sprintf("%s.%s", rowsEvent.Table.Schema, rowsEvent.Table.Name)
+	if _, ok := global.RulesMap[schemaTable]; ok {
+		h.updateQueue.data = append(h.updateQueue.data, "row")
+		h.updateQueue.mu.Unlock()
+	}
 
 	return nil
 }
