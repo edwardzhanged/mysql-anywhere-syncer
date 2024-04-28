@@ -8,9 +8,9 @@ const (
 )
 
 type Rule struct {
-	Schema                   string `mapstructure:"schema"`
-	Table                    string `mapstructure:"table"`
-	Target                   Target `mapstructure:"target"`
+	Schema                   string `mapstructure:"schema" validate:"required" `
+	Table                    string `mapstructure:"table"  validate:"required"`
+	Target                   Target `mapstructure:"target"  validate:"required,oneof=mongodb mysql"`
 	OrderByColumn            string `mapstructure:"order_by_column"`
 	ColumnLowerCase          bool   `mapstructure:"column_lower_case"`          // 列名称转为小写
 	ColumnUpperCase          bool   `mapstructure:"column_upper_case"`          // 列名称转为大写
@@ -28,7 +28,6 @@ type Rule struct {
 	DatetimeFormatter string `mapstructure:"datetime_formatter"` //datetime、timestamp类型格式化，不填写默认RFC3339(2006-01-02T15:04:05Z07:00)
 
 	// ------------------- MONGODB -----------------
-	MongodbDatabase   string `mapstructure:"mongodb_database"`   //mongodb database 不能为空
-	MongodbCollection string `mapstructure:"mongodb_collection"` //mongodb collection，可以为空，默认使用表(Table)名称
-
+	MongodbDatabase   string `mapstructure:"mongodb_database" validate:"required_if=Target mongodb"`
+	MongodbCollection string `mapstructure:"mongodb_collection" validate:"required_if=Target mongodb"`
 }

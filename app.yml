@@ -8,7 +8,7 @@ slave_id: 1001 #slave ID
 flavor: mysql #mysql or mariadb,默认mysql
 
 #mongodb连接配置
-mongodb_addrs: 10.136.134.218
+mongodb_host: 10.136.134.218
 mongodb_port: 27017
 mongodb_username: root
 mongodb_password: 123456
