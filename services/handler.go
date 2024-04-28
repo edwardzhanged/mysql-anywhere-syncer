@@ -3,6 +3,7 @@ package services
 import (
 	"fmt"
 	"mysql-mongodb-syncer/global"
+	"mysql-mongodb-syncer/syncer"
 	"sync"
 	"time"
 
@@ -12,8 +13,8 @@ import (
 )
 
 type updateQueue struct {
-	mu   sync.Mutex
-	data []string
+	mu         sync.Mutex
+	rowsEvents []*canal.RowsEvent
 }
 
 type Handler struct {
@@ -38,17 +39,14 @@ func (h *Handler) OnDDL(*replication.EventHeader, mysql.Position, *replication.Q
 // table命中config中的表，才会触发OnRow
 func (h *Handler) OnRow(rowsEvent *canal.RowsEvent) error {
 	h.updateQueue.mu.Lock()
-	fmt.Printf("+++++++OnRow+++++++++")
-	fmt.Printf("%+v\n", rowsEvent)
-	// 根据配置构造一个规则表，当event命中，执行插入MongoDB的操作
 	schemaTable := fmt.Sprintf("%s.%s", rowsEvent.Table.Schema, rowsEvent.Table.Name)
 	if _, ok := global.RulesMap[schemaTable]; ok {
-		h.updateQueue.data = append(h.updateQueue.data, "row")
+		h.updateQueue.rowsEvents = append(h.updateQueue.rowsEvents, rowsEvent)
 		h.updateQueue.mu.Unlock()
 	}
-
 	return nil
 }
+
 func (h *Handler) OnXID(*replication.EventHeader, mysql.Position) error { return nil }
 func (h *Handler) OnGTID(*replication.EventHeader, mysql.GTIDSet) error { return nil }
 func (h *Handler) OnPosSynced(*replication.EventHeader, mysql.Position, mysql.GTIDSet, bool) error {
@@ -57,13 +55,24 @@ func (h *Handler) OnPosSynced(*replication.EventHeader, mysql.Position, mysql.GT
 
 func (h *Handler) String() string { return "mysql-mongodb-handler" }
 
-func (h *Handler) Start() error {
+func (h *Handler) Start() {
+	// TODO: 要解决并发问题
 	go func() {
 		for {
 			h.updateQueue.mu.Lock()
-			if len(h.updateQueue.data) > 0 {
-				fmt.Println("Received row:", h.updateQueue.data[0])
-				h.updateQueue.data = h.updateQueue.data[1:]
+			if len(h.updateQueue.rowsEvents) > 0 {
+				fmt.Println("Received row:", h.updateQueue.rowsEvents[0])
+				rowEvent := h.updateQueue.rowsEvents[0]
+				for _, rule := range global.RulesMap[rowEvent.Table.Schema+"."+rowEvent.Table.Name] {
+					switch rule.Target {
+					case global.TargetMongoDB:
+						syncer.MongoInstance.Sync()
+						fmt.Println("Sync to MongoDBcc")
+					default:
+						fmt.Println("Unknown target")
+					}
+				}
+				h.updateQueue.rowsEvents = h.updateQueue.rowsEvents[1:]
 			}
 			h.updateQueue.mu.Unlock()
 			// 如何控制，如果lock时候会不会丢失更新
@@ -71,5 +80,4 @@ func (h *Handler) Start() error {
 		}
 
 	}()
-	return nil
 }

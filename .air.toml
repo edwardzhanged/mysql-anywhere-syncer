@@ -1,0 +1,17 @@
+[build]
+cmd = "go run main.go"
+
+[watch]
+includes = [
+    "*.go",
+    "*.tpl",
+    "*.tmpl",
+    "*.html",
+]
+
+
+[log]
+level = "info"
+
+[on_error]
+cmd = "echo 'error occurred!'"

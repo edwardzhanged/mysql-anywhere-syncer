@@ -1,9 +1,16 @@
 package global
 
+type Target string
+
+const (
+	TargetMongoDB Target = "mongodb"
+	TargetMySQL   Target = "mysql"
+)
+
 type Rule struct {
 	Schema                   string `mapstructure:"schema"`
-	Db                       string `mapstructure:"db"`
 	Table                    string `mapstructure:"table"`
+	Target                   Target `mapstructure:"target"`
 	OrderByColumn            string `mapstructure:"order_by_column"`
 	ColumnLowerCase          bool   `mapstructure:"column_lower_case"`          // 列名称转为小写
 	ColumnUpperCase          bool   `mapstructure:"column_upper_case"`          // 列名称转为大写

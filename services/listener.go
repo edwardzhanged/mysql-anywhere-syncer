@@ -39,14 +39,15 @@ func NewListener() {
 
 func (l *Listener) Start() {
 	l.canal.SetEventHandler(l.handler)
-	pos, err := l.canal.GetMasterPos()
-	if err != nil {
-		log.Fatal(err)
-	}
-	err = l.canal.RunFrom(pos)
-	if err != nil {
-		log.Fatal(err)
-	}
+	l.handler.Start()
+	l.canal.GetMasterPos()
+	// if err != nil {
+	// 	fmt.Print(err)
+	// }
+	// err = l.canal.RunFrom(pos)
+	// if err != nil {
+	// 	fmt.Print(err)
+	// }
 }
 
 func (l *Listener) Reload() {
