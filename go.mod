@@ -7,6 +7,7 @@ require (
 	github.com/go-mysql-org/go-mysql v1.7.0
 	github.com/go-playground/validator/v10 v10.19.0
 	github.com/gookit/color v1.5.4
+	github.com/sirupsen/logrus v1.9.3
 	github.com/spf13/cobra v1.8.0
 	github.com/spf13/viper v1.18.2
 	go.mongodb.org/mongo-driver v1.15.0

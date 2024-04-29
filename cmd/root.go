@@ -7,8 +7,10 @@ import (
 	"syscall"
 
 	"mysql-mongodb-syncer/global"
-
 	"mysql-mongodb-syncer/services"
+	"mysql-mongodb-syncer/syncer"
+
+	"mysql-mongodb-syncer/utils/logger"
 
 	"github.com/fsnotify/fsnotify"
 	"github.com/gookit/color"
@@ -26,13 +28,59 @@ var (
 	}
 )
 
+func init() {
+	cobra.OnInitialize(initConfig)
+
+	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is ./app.yml)")
+}
+
+func initConfig() {
+	viper.BindPFlag("config", rootCmd.PersistentFlags().Lookup("config"))
+
+	if cfgFile != "" {
+		viper.SetConfigFile(cfgFile)
+	} else {
+		viper.SetConfigName("app")
+		viper.AddConfigPath("./")
+	}
+
+	viper.SetConfigType("yml")
+
+	if err := viper.ReadInConfig(); err != nil {
+		logger.Logger.WithError(err).Fatal("Failed to read config file")
+	}
+}
+
 func rootCmdRun(cmd *cobra.Command, args []string) {
 	global.Initialize()
+
+	global.RulesMap = make(map[string][]*global.Rule)
+	targets := make([]*global.Rule, 0)
+	for _, rule := range global.GbConfig.RuleConfigs {
+		schemaTable := fmt.Sprintf("%s.%s", rule.Schema, rule.Table)
+		global.RulesMap[schemaTable] = append(global.RulesMap[schemaTable], rule)
+		targets = append(targets, rule)
+	}
+	for _, rule := range targets {
+		switch rule.Target {
+		case global.TargetMongoDB:
+			syncer.NewMongo(&syncer.ConnectOptions{
+				Host:     global.GbConfig.MongodbHost,
+				Port:     global.GbConfig.MongodbPort,
+				Username: global.GbConfig.MongodbUsername,
+				Password: global.GbConfig.MongodbPassword,
+			})
+			if err := syncer.MongoInstance.Connect(); err != nil {
+				logger.Logger.WithError(err).Fatal("Failed to connect to mongodb")
+			}
+		default:
+		}
+	}
+
 	services.NewListener()
 	services.ListenerService.Start()
 	viper.WatchConfig()
 	viper.OnConfigChange(func(e fsnotify.Event) {
-		fmt.Println("aaaaaaaaaaaa")
 		global.Initialize()
 		services.ListenerService.Reload()
 		color.Yellowln("Config file changed:", e.Name)
@@ -54,29 +102,4 @@ func rootCmdRun(cmd *cobra.Command, args []string) {
 // Execute executes the root command.
 func Execute() error {
 	return rootCmd.Execute()
-}
-
-func init() {
-	cobra.OnInitialize(initConfig)
-
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is ./app.yml)")
-}
-
-func initConfig() {
-	viper.BindPFlag("config", rootCmd.PersistentFlags().Lookup("config"))
-
-	if cfgFile != "" {
-		// Use config file from the flag.
-		viper.SetConfigFile(cfgFile)
-	} else {
-		// Use default config file.
-		viper.SetConfigName("app")
-		viper.AddConfigPath("./")
-	}
-
-	viper.SetConfigType("yml")
-
-	if err := viper.ReadInConfig(); err != nil {
-		fmt.Printf("Error reading config file, %s", err)
-	}
 }

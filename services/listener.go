@@ -1,8 +1,8 @@
 package services
 
 import (
-	"log"
 	"mysql-mongodb-syncer/global"
+	"mysql-mongodb-syncer/utils/logger"
 
 	"github.com/go-mysql-org/go-mysql/canal"
 )
@@ -24,7 +24,7 @@ func InitCanal() *canal.Canal {
 
 	c, err := canal.NewCanal(canalCfg)
 	if err != nil {
-		log.Fatal(err)
+		logger.Logger.WithError(err).Fatal("Failed to create canal")
 	}
 	return c
 }
@@ -42,7 +42,7 @@ func (l *Listener) Start() {
 	l.handler.Start()
 	pos, err := l.canal.GetMasterPos()
 	if err != nil {
-		log.Fatal(err)
+		logger.Logger.WithError(err).Fatal("Failed to get master pos")
 	}
 	go func() { l.canal.RunFrom(pos) }()
 
@@ -51,4 +51,5 @@ func (l *Listener) Start() {
 func (l *Listener) Reload() {
 	l.canal.Close()
 	l.canal = InitCanal()
+	l.Start()
 }

@@ -1,9 +1,7 @@
 package global
 
 import (
-	"fmt"
-	"log"
-	"mysql-mongodb-syncer/syncer"
+	"mysql-mongodb-syncer/utils/logger"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/spf13/viper"
@@ -31,37 +29,16 @@ var (
 )
 
 func Initialize() {
+	logger.NewLogger()
 	GbConfig = &Config{}
 	if err := viper.Unmarshal(GbConfig); err != nil {
-		panic(err)
+		logger.Logger.Fatal("Failed to unmarshal config")
 	}
+
 	validate := validator.New()
 	err := validate.Struct(GbConfig)
 	if err != nil {
-		log.Fatal(err)
-		// Handle validation error
-	}
-	RulesMap = make(map[string][]*Rule)
-	targets := make([]*Rule, 0)
-	for _, rule := range GbConfig.RuleConfigs {
-		schemaTable := fmt.Sprintf("%s.%s", rule.Schema, rule.Table)
-		RulesMap[schemaTable] = append(RulesMap[schemaTable], rule)
-		targets = append(targets, rule)
-	}
-	for _, rule := range targets {
-		switch rule.Target {
-		case TargetMongoDB:
-			syncer.NewMongo(&syncer.ConnectOptions{
-				Host:     GbConfig.MongodbHost,
-				Port:     GbConfig.MongodbPort,
-				Username: GbConfig.MongodbUsername,
-				Password: GbConfig.MongodbPassword,
-			})
-			if err := syncer.MongoInstance.Connect(); err != nil {
-				log.Fatal(err)
-			}
-		default:
-		}
+		logger.Logger.Fatal("Config file validation failed")
 	}
 
 }
