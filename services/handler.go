@@ -13,7 +13,6 @@ import (
 
 type Handler struct {
 	rowsEvents chan *canal.RowsEvent
-	stop       chan any
 }
 
 func NewHandler() *Handler {
@@ -34,6 +33,7 @@ func (h *Handler) OnDDL(*replication.EventHeader, mysql.Position, *replication.Q
 
 func (h *Handler) OnRow(rowsEvent *canal.RowsEvent) error {
 	if _, ok := global.RulesMap[getSchemaTable(rowsEvent)]; ok {
+		logger.Logger.Infof("Received rows event: %s", rowsEvent)
 		h.rowsEvents <- rowsEvent
 	}
 	return nil
@@ -48,20 +48,32 @@ func (h *Handler) OnPosSynced(*replication.EventHeader, mysql.Position, mysql.GT
 func (h *Handler) String() string { return "mysql-mongodb-handler" }
 
 func (h *Handler) Start() {
-	go func() {
-		for rowsEvent := range h.rowsEvents {
+	// Create a buffered channel to hold the jobs
+	jobs := make(chan *canal.RowsEvent, 50)
 
-			for _, rule := range global.RulesMap[getSchemaTable(rowsEvent)] {
-				switch rule.Target {
-				case global.TargetMongoDB:
-					err := syncer.MongoInstance.Sync(rowsEvent, rule)
-					if err != nil {
-						logger.Logger.WithError(err).Error("Failed to sync to mongodb")
+	// Start 50 workers
+	for w := 1; w <= 50; w++ {
+		go func(w int, jobs <-chan *canal.RowsEvent) {
+			for rowsEvent := range jobs {
+				for _, rule := range global.RulesMap[getSchemaTable(rowsEvent)] {
+					switch rule.Target {
+					case global.TargetMongoDB:
+						err := syncer.MongoInstance.Sync(rowsEvent, rule)
+						if err != nil {
+							logger.Logger.WithError(err).Error("Failed to sync to mongodb")
+						}
 					}
 				}
 			}
-		}
+		}(w, jobs)
+	}
 
+	// Send jobs to the workers
+	go func() {
+		for rowsEvent := range h.rowsEvents {
+			jobs <- rowsEvent
+		}
+		close(jobs)
 	}()
 
 }

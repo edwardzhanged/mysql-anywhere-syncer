@@ -7,8 +7,10 @@ import (
 	"mysql-mongodb-syncer/global"
 	"mysql-mongodb-syncer/utils/logger"
 	"sync"
+	"time"
 
 	"github.com/go-mysql-org/go-mysql/canal"
+	"github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"gopkg.in/mgo.v2/bson"
@@ -68,10 +70,6 @@ func (m *Mongo) Ping() error {
 	return m.client.Ping(context.Background(), nil)
 }
 
-type Document struct {
-	Data []interface{} `bson:"data"`
-}
-
 func (m *Mongo) Sync(rowsEvent *canal.RowsEvent, rule *global.Rule) error {
 	if len(rowsEvent.Table.PKColumns) == 0 {
 		return errors.New("no primary key column")
@@ -85,6 +83,10 @@ func (m *Mongo) Sync(rowsEvent *canal.RowsEvent, rule *global.Rule) error {
 		if err != nil {
 			logger.Logger.WithError(err).Error("Failed to delete row")
 		}
+		logger.Logger.WithFields(logrus.Fields{
+			"pk":     oldPk,
+			"oldrow": oldRow,
+		}).Info("Delted row")
 	case canal.InsertAction:
 		// TODO: 忽略的列
 		newRow := rowsEvent.Rows[0]
@@ -98,6 +100,10 @@ func (m *Mongo) Sync(rowsEvent *canal.RowsEvent, rule *global.Rule) error {
 		if err != nil {
 			logger.Logger.WithError(err).Error("Failed to insert row")
 		}
+		logger.Logger.WithFields(logrus.Fields{
+			"pk":     newPk,
+			"newrow": newRow,
+		}).Info("Inserted row")
 	case canal.UpdateAction:
 		oldRow, newRow := rowsEvent.Rows[0], rowsEvent.Rows[1]
 		oldPK, newPK := getPrimaryKey(oldRow, rowsEvent), getPrimaryKey(newRow, rowsEvent)
@@ -114,6 +120,12 @@ func (m *Mongo) Sync(rowsEvent *canal.RowsEvent, rule *global.Rule) error {
 		if err != nil {
 			logger.Logger.WithError(err).Error("Failed to insert row")
 		}
+		logger.Logger.WithFields(logrus.Fields{
+			"oldpk":  oldPK,
+			"newpk":  newPK,
+			"oldrow": oldRow,
+			"newrow": newRow,
+		}).Info("Updated row")
 	}
 	return nil
 }
@@ -131,12 +143,19 @@ func getPrimaryKey(row []interface{}, rowsEvent *canal.RowsEvent) (pk string) {
 		switch v := row[PKColumn].(type) {
 		case int32:
 			pk += fmt.Sprintf("%d", v)
+		case int64:
+			pk += fmt.Sprintf("%d", v)
+		case float64:
+			pk += fmt.Sprintf("%f", v)
+		case []byte:
+			pk += string(v)
+		case time.Time:
+			pk += v.Format(time.RFC3339)
 		case string:
 			pk += v
 		default:
 			logger.Logger.WithField("pk", pk).Error("Unsupported type for primary key")
 		}
-		logger.Logger.WithField("pk", pk).Info("Primary key")
 	}
 	return pk
 }

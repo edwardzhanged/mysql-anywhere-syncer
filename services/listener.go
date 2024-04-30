@@ -37,19 +37,24 @@ func NewListener() {
 	ListenerService.handler = Handler
 }
 
-func (l *Listener) Start() {
+func (l *Listener) Start(dumpFlag bool, firstTime bool) {
 	l.canal.SetEventHandler(l.handler)
 	l.handler.Start()
-	pos, err := l.canal.GetMasterPos()
-	if err != nil {
-		logger.Logger.WithError(err).Fatal("Failed to get master pos")
+
+	if dumpFlag && firstTime {
+		go func() { l.canal.Run() }()
+	} else {
+		pos, err := l.canal.GetMasterPos()
+		if err != nil {
+			logger.Logger.WithError(err).Fatal("Failed to get master pos")
+		}
+		go func() { l.canal.RunFrom(pos) }()
 	}
-	go func() { l.canal.RunFrom(pos) }()
 
 }
 
-func (l *Listener) Reload() {
+func (l *Listener) Reload(dumpFlag bool, firstTime bool) {
 	l.canal.Close()
 	l.canal = InitCanal()
-	l.Start()
+	l.Start(dumpFlag, firstTime)
 }

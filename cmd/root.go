@@ -19,7 +19,9 @@ import (
 )
 
 var (
-	cfgFile string
+	cfgFile   string
+	dumpFlag  bool
+	firstTime = true
 
 	rootCmd = &cobra.Command{
 		Use:   "syncer-cli",
@@ -32,6 +34,8 @@ func init() {
 	cobra.OnInitialize(initConfig)
 
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is ./app.yml)")
+	rootCmd.PersistentFlags().BoolVar(&dumpFlag, "dump", false, "dump data from mysql to file(default is false)")
+
 }
 
 func initConfig() {
@@ -73,12 +77,13 @@ func rootCmdRun(cmd *cobra.Command, args []string) {
 	}
 
 	services.NewListener()
-	services.ListenerService.Start()
+	services.ListenerService.Start(dumpFlag, firstTime)
+	firstTime = false
 	viper.WatchConfig()
 	viper.OnConfigChange(func(e fsnotify.Event) {
 		global.Initialize()
 		initializeRulesMap()
-		services.ListenerService.Reload()
+		services.ListenerService.Reload(dumpFlag, firstTime)
 		color.Yellowln("Config file changed:", e.Name)
 	})
 
