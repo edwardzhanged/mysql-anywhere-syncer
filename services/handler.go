@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"mysql-mongodb-syncer/global"
 	"mysql-mongodb-syncer/syncer"
+	"mysql-mongodb-syncer/utils/logger"
 
 	"github.com/go-mysql-org/go-mysql/canal"
 	"github.com/go-mysql-org/go-mysql/mysql"
@@ -53,7 +54,10 @@ func (h *Handler) Start() {
 			for _, rule := range global.RulesMap[getSchemaTable(rowsEvent)] {
 				switch rule.Target {
 				case global.TargetMongoDB:
-					syncer.MongoInstance.Sync(rowsEvent, rule)
+					err := syncer.MongoInstance.Sync(rowsEvent, rule)
+					if err != nil {
+						logger.Logger.WithError(err).Error("Failed to sync to mongodb")
+					}
 				}
 			}
 		}

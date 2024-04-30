@@ -55,12 +55,7 @@ func rootCmdRun(cmd *cobra.Command, args []string) {
 	global.Initialize()
 
 	global.RulesMap = make(map[string][]*global.Rule)
-	targets := make([]*global.Rule, 0)
-	for _, rule := range global.GbConfig.RuleConfigs {
-		schemaTable := fmt.Sprintf("%s.%s", rule.Schema, rule.Table)
-		global.RulesMap[schemaTable] = append(global.RulesMap[schemaTable], rule)
-		targets = append(targets, rule)
-	}
+	targets := initializeRulesMap()
 	for _, rule := range targets {
 		switch rule.Target {
 		case global.TargetMongoDB:
@@ -82,6 +77,7 @@ func rootCmdRun(cmd *cobra.Command, args []string) {
 	viper.WatchConfig()
 	viper.OnConfigChange(func(e fsnotify.Event) {
 		global.Initialize()
+		initializeRulesMap()
 		services.ListenerService.Reload()
 		color.Yellowln("Config file changed:", e.Name)
 	})
@@ -102,4 +98,15 @@ func rootCmdRun(cmd *cobra.Command, args []string) {
 // Execute executes the root command.
 func Execute() error {
 	return rootCmd.Execute()
+}
+
+func initializeRulesMap() []*global.Rule {
+	global.RulesMap = make(map[string][]*global.Rule)
+	targets := make([]*global.Rule, 0)
+	for _, rule := range global.GbConfig.RuleConfigs {
+		schemaTable := fmt.Sprintf("%s.%s", rule.Schema, rule.Table)
+		global.RulesMap[schemaTable] = append(global.RulesMap[schemaTable], rule)
+		targets = append(targets, rule)
+	}
+	return targets
 }
