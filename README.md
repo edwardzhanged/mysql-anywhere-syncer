@@ -6,6 +6,7 @@ Sync Mysql changes to any other database
 ## Features
 
 * Real-time Sync: MySQL-Anywhere-Syncer captures changes in the MySQL database in real-time and syncs them to the target database.
+* Configure real-time updates: The application can reload the configuration in response to changes in the configuration file without the need for a restart.
 * Broad Compatibility: It can sync changes to any other database, providing a versatile solution for various database platforms. (Developing, support MongoDb only)
 * Efficient and Reliable: It ensures data consistency and integrity during the synchronization process.
 
