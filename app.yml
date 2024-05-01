@@ -1,4 +1,4 @@
-# mysql配置
+# mysql
 addr: 127.0.0.1:3306
 user: root
 pass: 123456
@@ -7,17 +7,23 @@ charset: utf8
 slave_id: 1001 #slave ID
 flavor: mysql #mysql or mariadb,默认mysql
 
-#mongodb连接配置
-mongodb_host: 10.136.134.218
+#mongodb
+mongodb_host: 127.0.0.1
 mongodb_port: 27017
 mongodb_username: root
 mongodb_password: 123456
 
-#规则配置
+
 rule:
-  - schema: packit
-    table: testszeekr_env 
+  - schema: gitea
+    table: students 
     target: mongodb 
     order_by_column: id 
     mongodb_database: test
-    mongodb_collection: test_env
+    mongodb_collection: students
+  - schema: gitea
+    table: students 
+    target: mongodb 
+    order_by_column: id 
+    mongodb_database: test
+    mongodb_collection: company

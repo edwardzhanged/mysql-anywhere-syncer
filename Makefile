@@ -1,8 +1,8 @@
 .PHONY: build run clean
 
 # Name of the output binary
-BINARY_NAME := mysql-mongdb-syncer
-BUILD_DIR_NAME := mysql-mongdb-syncerr-release
+BINARY_NAME := mysql-anywhere-syncer
+BUILD_DIR_NAME := mysql-anywhere-syncer-release
 
 build:
 	go build -o $(BINARY_NAME) .
