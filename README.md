@@ -24,11 +24,11 @@ An example configuration can be found within app.yml, which illustrates its prim
 #### Run
 If you only want to sync from latest MySQL position
 ```bash
-./mysql-mongdb-syncer
+./mysql-anywhere-syncer
 ```
 If you want to dump the existing MySQL data to targets before auto sync
 ```bash
-./mysql-mongdb-syncer --dump
+./mysql-anywhere-syncer --dump
 ```
 
 
@@ -38,3 +38,7 @@ If you want to dump the existing MySQL data to targets before auto sync
 ## Contribution
 Implement the interface within the syncer package to support various different databases.
 
+
+benchmark
+mongodb connection没有close
+自己总结点感悟吧

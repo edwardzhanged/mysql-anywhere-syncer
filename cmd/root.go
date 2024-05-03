@@ -94,7 +94,11 @@ func rootCmdRun(cmd *cobra.Command, args []string) {
 		select {
 		case <-sig:
 			color.Redln("Received an interrupt, stopping services...")
-			return
+			if syncer.MongoInstance != nil {
+				if err := syncer.MongoInstance.Close(); err != nil {
+					logger.Logger.WithError(err).Error("Failed to disconnect from mongodb")
+				}
+			}
 		default:
 		}
 	}
