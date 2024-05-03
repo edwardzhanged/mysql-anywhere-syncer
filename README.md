@@ -12,16 +12,16 @@ Sync Mysql changes to any other database
 
 ---------------------------------------
 ## Usage
-#### Build
+### Build
 ```bash
 make build
 ```
-#### Configuration
+### Configuration
 The default configuration file is named app.yml. Also, you have the option to specify a different file name using the --config flag. 
 
 An example configuration can be found within app.yml, which illustrates its primary purpose. You are also able to define multiple rules as needed.
 
-#### Run
+### Run
 If you only want to sync from latest MySQL position
 ```bash
 ./mysql-anywhere-syncer
@@ -30,7 +30,10 @@ If you want to dump the existing MySQL data to targets before auto sync
 ```bash
 ./mysql-anywhere-syncer --dump
 ```
-
+Hung up
+```bash
+nohup ./mysql-anywhere-syncer > output.log 2>&1 
+```
 
 ## Benchmark
 
