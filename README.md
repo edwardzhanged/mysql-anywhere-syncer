@@ -37,8 +37,3 @@ If you want to dump the existing MySQL data to targets before auto sync
 
 ## Contribution
 Implement the interface within the syncer package to support various different databases.
-
-
-benchmark
-mongodb connection没有close
-自己总结点感悟吧
