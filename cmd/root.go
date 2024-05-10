@@ -98,6 +98,7 @@ func rootCmdRun(cmd *cobra.Command, args []string) {
 				if err := syncer.MongoInstance.Close(); err != nil {
 					logger.Logger.WithError(err).Error("Failed to disconnect from mongodb")
 				}
+				os.Exit(0)
 			}
 		default:
 		}

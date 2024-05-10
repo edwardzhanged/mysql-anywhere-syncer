@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"mysql-mongodb-syncer/global"
 	"mysql-mongodb-syncer/utils/logger"
+	"strconv"
 	"sync"
 	"time"
 
@@ -88,14 +89,11 @@ func (m *Mongo) Sync(rowsEvent *canal.RowsEvent, rule *global.Rule) error {
 			"oldrow": oldRow,
 		}).Info("Delted row")
 	case canal.InsertAction:
-		// TODO: 忽略的列
 		newRow := rowsEvent.Rows[0]
 		newPk := getPrimaryKey(newRow, rowsEvent)
 
 		doc := bson.M{"_id": newPk}
-		for i, column := range rowsEvent.Table.Columns {
-			doc[column.Name] = newRow[i]
-		}
+		buildUpsertDoc(doc, newRow, rowsEvent, rule)
 		_, err := collection.InsertOne(context.Background(), doc)
 		if err != nil {
 			logger.Logger.WithError(err).Error("Failed to insert row")
@@ -108,9 +106,7 @@ func (m *Mongo) Sync(rowsEvent *canal.RowsEvent, rule *global.Rule) error {
 		oldRow, newRow := rowsEvent.Rows[0], rowsEvent.Rows[1]
 		oldPK, newPK := getPrimaryKey(oldRow, rowsEvent), getPrimaryKey(newRow, rowsEvent)
 		newDoc := bson.M{"_id": newPK}
-		for i, column := range rowsEvent.Table.Columns {
-			newDoc[column.Name] = newRow[i]
-		}
+		buildUpsertDoc(newDoc, newRow, rowsEvent, rule)
 		_, err := collection.DeleteOne(context.Background(), bson.M{"_id": oldPK})
 		if err != nil {
 			logger.Logger.WithError(err).Error("Failed to delete row")
@@ -158,4 +154,62 @@ func getPrimaryKey(row []interface{}, rowsEvent *canal.RowsEvent) (pk string) {
 		}
 	}
 	return pk
+}
+
+func buildUpsertDoc(doc bson.M, newRow []interface{}, rowsEvent *canal.RowsEvent, rule *global.Rule) {
+	for i, column := range rowsEvent.Table.Columns {
+		if len(rule.IncludeColumnsConfig) > 0 {
+			for _, incluedColumn := range rule.IncludeColumnsConfig {
+				if column.Name == incluedColumn {
+					doc[column.Name] = newRow[i]
+				}
+			}
+		} else {
+			doc[column.Name] = newRow[i]
+		}
+		if len(rule.ExcludeColumnsConfig) > 0 {
+			for _, excludeColumn := range rule.ExcludeColumnsConfig {
+				if column.Name == excludeColumn {
+					delete(doc, column.Name)
+				}
+			}
+		}
+		if len(rule.ColumnMappingsConfig) > 0 {
+			for _, columnMapping := range rule.ColumnMappingsConfig {
+				if column.Name == columnMapping.Source {
+					doc[columnMapping.Target] = newRow[i]
+				}
+			}
+		}
+	}
+	if len(rule.NewColumnsConfig) > 0 {
+		for _, newColumn := range rule.NewColumnsConfig {
+			if newColumn.Type == "int" {
+				intValue, err := strconv.Atoi(newColumn.Value)
+				if err != nil {
+					logger.Logger.WithError(err).Error("Failed to convert string to int")
+					continue
+				}
+				doc[newColumn.Name] = intValue
+			} else if newColumn.Type == "string" {
+				doc[newColumn.Name] = newColumn.Value
+			} else if newColumn.Type == "float" {
+				floatValue, err := strconv.ParseFloat(newColumn.Value, 64)
+				if err != nil {
+					logger.Logger.WithError(err).Error("Failed to convert string to float")
+					continue
+				}
+				doc[newColumn.Name] = floatValue
+			} else if newColumn.Type == "bool" {
+				boolValue, err := strconv.ParseBool(newColumn.Value)
+				if err != nil {
+					logger.Logger.WithError(err).Error("Failed to convert string to bool")
+					continue
+				}
+				doc[newColumn.Name] = boolValue
+			} else {
+				logger.Logger.Error("Unsupported type for new column")
+			}
+		}
+	}
 }

@@ -7,6 +7,9 @@ BUILD_DIR_NAME := mysql-anywhere-syncer-release
 build:
 	go build -o $(BINARY_NAME) .
 
+build-linux:
+	GOOS=linux GOARCH=amd64 go build -o $(BINARY_NAME) .
+
 clean:
 	if [ -f $(BINARY_NAME) ]; then rm $(BINARY_NAME); fi
 	if [ -d $(BUILD_DIR_NAME) ]; then rm -rf $(BUILD_DIR_NAME); fi

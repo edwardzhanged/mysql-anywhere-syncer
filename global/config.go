@@ -17,10 +17,16 @@ type Config struct {
 	RuleConfigs []*Rule `mapstructure:"rule" validate:"required,dive"`
 
 	// ------------------- MONGODB -----------------
-	MongodbHost     string `mapstructure:"mongodb_host"`     //mongodb地址，多个用逗号分隔
-	MongodbUsername string `mapstructure:"mongodb_username"` //mongodb用户名，默认为空
-	MongodbPassword string `mapstructure:"mongodb_password"` //mongodb密码，默认为空
-	MongodbPort     int    `mapstructure:"mongodb_port"`     //mongodb端口，默认27017
+	MongodbHost     string `mapstructure:"mongodb_host"`
+	MongodbUsername string `mapstructure:"mongodb_username"`
+	MongodbPassword string `mapstructure:"mongodb_password"`
+	MongodbPort     int    `mapstructure:"mongodb_port"`
+
+	// ------------------- MYSQL -----------------
+	MysqlHost     string `mapstructure:"mysql_host"`
+	MysqlUsername string `mapstructure:"mysql_username"`
+	MysqlPassword string `mapstructure:"mysql_password"`
+	MysqlPort     int    `mapstructure:"mysql_port"`
 }
 
 var (
@@ -38,7 +44,7 @@ func Initialize() {
 	validate := validator.New()
 	err := validate.Struct(GbConfig)
 	if err != nil {
-		logger.Logger.Fatal("Config file validation failed")
+		logger.Logger.Fatal("Failed to validate config: ", err)
 	}
 
 }

@@ -5,7 +5,7 @@ pass: 123456
 
 charset: utf8
 slave_id: 1001 #slave ID
-flavor: mysql #mysql or mariadb,默认mysql
+flavor: mysql
 
 #mongodb
 mongodb_host: 127.0.0.1
@@ -15,15 +15,27 @@ mongodb_password: 123456
 
 
 rule:
-  - schema: gitea
+  - schema: school
     table: students 
     target: mongodb 
     order_by_column: id 
-    mongodb_database: test
+    mongodb_database: school
     mongodb_collection: students
-  - schema: gitea
-    table: students 
-    target: mongodb 
-    order_by_column: id 
-    mongodb_database: test
-    mongodb_collection: company
+    # columns to include
+    include_columns: 
+      - name
+      - age
+    # columns to exclude
+    exclude_columns: 
+      - address
+    # column mappings, means rename mobile to phone
+    column_mappings: 
+      - source: mobile
+        target: phone
+    # new columns to add
+    new_columns: 
+      - name: status
+        type: int
+        value: 1
+
+    
