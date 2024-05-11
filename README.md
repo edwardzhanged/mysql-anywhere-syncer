@@ -12,14 +12,22 @@ Sync Mysql changes to any other database
 
 ---------------------------------------
 ## Usage
-### Build
+### Build From Source
 ```bash
+git clone https://github.com/edwardzhanged/mysql-anywhere-syncer.git
+cd mysql-anywhere-syncer
 make build
 ```
 ### Configuration
 The default configuration file is named app.yml. Also, you have the option to specify a different file name using the --config flag. 
 
 An example configuration can be found within app.yml, which illustrates its primary purpose. You are also able to define multiple rules as needed.
+
+#### MongoDB
+[MongoDB Configuration](docs/mongodb.md)
+
+#### Redis
+TBD
 
 ### Run
 If you only want to sync from latest MySQL position
@@ -34,9 +42,6 @@ Hung up
 ```bash
 nohup ./mysql-anywhere-syncer > output.log 2>&1 
 ```
-
-## Benchmark
-
 
 ## Contribution
 Implement the interface within the syncer package to support various different databases.
