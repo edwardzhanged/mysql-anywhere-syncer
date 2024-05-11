@@ -11,25 +11,28 @@ Sync Mysql changes to any other database
 * Efficient and Reliable: It ensures data consistency and integrity during the synchronization process.
 
 ---------------------------------------
-## Usage
+## Installation
 ### Build From Source
 ```bash
 git clone https://github.com/edwardzhanged/mysql-anywhere-syncer.git
 cd mysql-anywhere-syncer
 make build
 ```
-### Configuration
+### Download Binary
+Download From [Release](https://github.com/edwardzhanged/mysql-anywhere-syncer/releases/tag/v1.0.0)
+
+## Configuration
 The default configuration file is named app.yml. Also, you have the option to specify a different file name using the --config flag. 
 
 An example configuration can be found within app.yml, which illustrates its primary purpose. You are also able to define multiple rules as needed.
 
-#### MongoDB
+### MongoDB
 [MongoDB Configuration](docs/mongodb.md)
 
-#### Redis
+### Redis
 TBD
 
-### Run
+## Run
 If you only want to sync from latest MySQL position
 ```bash
 ./mysql-anywhere-syncer
