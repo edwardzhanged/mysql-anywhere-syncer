@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/go-mysql-org/go-mysql/canal"
+	"github.com/go-mysql-org/go-mysql/schema"
 	"github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -161,11 +162,11 @@ func buildUpsertDoc(doc bson.M, newRow []interface{}, rowsEvent *canal.RowsEvent
 		if len(rule.IncludeColumnsConfig) > 0 {
 			for _, incluedColumn := range rule.IncludeColumnsConfig {
 				if column.Name == incluedColumn {
-					doc[column.Name] = newRow[i]
+					addConvertedValue(doc, column, newRow[i])
 				}
 			}
 		} else {
-			doc[column.Name] = newRow[i]
+			addConvertedValue(doc, column, newRow[i])
 		}
 		if len(rule.ExcludeColumnsConfig) > 0 {
 			for _, excludeColumn := range rule.ExcludeColumnsConfig {
@@ -212,4 +213,21 @@ func buildUpsertDoc(doc bson.M, newRow []interface{}, rowsEvent *canal.RowsEvent
 			}
 		}
 	}
+}
+
+func addConvertedValue(doc bson.M, column schema.TableColumn, newRow any) {
+
+	switch column.Type {
+	case schema.TYPE_TIMESTAMP, schema.TYPE_DATETIME, schema.TYPE_TIME:
+		t, _ := time.Parse("2006-01-02 15:04:05", newRow.(string))
+		doc[column.Name] = t
+	case schema.TYPE_DATE:
+		t, _ := time.Parse("2006-01-02", newRow.(string))
+		doc[column.Name] = t
+	case schema.TYPE_FLOAT:
+		doc[column.Name] = newRow.(float64)
+	default:
+		doc[column.Name] = newRow
+	}
+
 }

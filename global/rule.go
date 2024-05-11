@@ -20,8 +20,6 @@ type Rule struct {
 	ValueEncoder         string           `mapstructure:"value_encoder"`
 	ValueFormatter       string           `mapstructure:"value_formatter"`
 
-	// DateFormatter     string `mapstructure:"date_formatter"`
-	// DatetimeFormatter string `mapstructure:"datetime_formatter"`
 	// ------------------- MONGODB -----------------
 	MongodbDatabase   string `mapstructure:"mongodb_database" validate:"required_if=Target mongodb"`
 	MongodbCollection string `mapstructure:"mongodb_collection" validate:"required_if=Target mongodb"`
@@ -37,6 +35,6 @@ type ColumnMapping struct {
 
 type NewColumn struct {
 	Name  string `mapstructure:"name" validate:"required"`
-	Type  string `mapstructure:"type" validate:"required"`
+	Type  string `mapstructure:"type" validate:"required,oneof=int bool string"`
 	Value string `mapstructure:"value"`
 }
