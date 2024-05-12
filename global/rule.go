@@ -36,5 +36,6 @@ type ColumnMapping struct {
 type NewColumn struct {
 	Name  string `mapstructure:"name" validate:"required"`
 	Type  string `mapstructure:"type" validate:"required,oneof=int bool string"`
+	Templ bool   `mapstructure:"templ"`
 	Value string `mapstructure:"value"`
 }

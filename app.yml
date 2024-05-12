@@ -35,7 +35,7 @@ rule:
     # new columns to add
     new_columns: 
       - name: status
-        type: int
-        value: 1
-
+        type: string
+        templ: true
+        value: "{% if is_active %}good{% else %}bad{% endif %}"
     

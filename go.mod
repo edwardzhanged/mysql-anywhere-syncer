@@ -3,6 +3,7 @@ module mysql-mongodb-syncer
 go 1.22.1
 
 require (
+	github.com/flosch/pongo2/v6 v6.0.0
 	github.com/fsnotify/fsnotify v1.7.0
 	github.com/go-mysql-org/go-mysql v1.7.0
 	github.com/go-playground/validator/v10 v10.19.0

@@ -26,8 +26,9 @@ rules:
         target: phone
     new_columns:  # Not necessary; add new column with default value, support int/bool/string
       - name: status
-        type: int
-        value: 1
+        type: string
+        templ: true # Not necessary, default is false
+        value: "{% if is_active %}good{% else %}bad{% endif %}" # The value will be rendered by columns. Using template engine https://github.com/flosch/pongo2
       - name: male
         type: bool
         value: false
