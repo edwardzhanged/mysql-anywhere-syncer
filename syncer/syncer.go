@@ -3,7 +3,7 @@ package syncer
 import (
 	"github.com/go-mysql-org/go-mysql/canal"
 
-	"mysql-mongodb-syncer/global"
+	"mysql-anywhere-syncer/global"
 )
 
 type Syncer interface {

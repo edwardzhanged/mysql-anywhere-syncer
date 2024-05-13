@@ -4,13 +4,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"mysql-mongodb-syncer/global"
-	"mysql-mongodb-syncer/utils/logger"
+	"mysql-anywhere-syncer/global"
+	"mysql-anywhere-syncer/utils/logger"
 	"strconv"
 	"sync"
 	"time"
 
-	"github.com/flosch/pongo2/v6"
 	"github.com/go-mysql-org/go-mysql/canal"
 	"github.com/go-mysql-org/go-mysql/schema"
 	"github.com/sirupsen/logrus"
@@ -19,7 +18,7 @@ import (
 	"gopkg.in/mgo.v2/bson"
 )
 
-type ConnectOptions struct {
+type MongoConnectOptions struct {
 	Host     string
 	Port     int
 	Username string
@@ -27,7 +26,7 @@ type ConnectOptions struct {
 }
 
 type Mongo struct {
-	connectOptions *ConnectOptions
+	connectOptions *MongoConnectOptions
 
 	client *mongo.Client
 	lock   sync.Mutex
@@ -35,7 +34,7 @@ type Mongo struct {
 
 var MongoInstance *Mongo
 
-func NewMongo(connectOptions *ConnectOptions) {
+func NewMongo(connectOptions *MongoConnectOptions) {
 	MongoInstance = &Mongo{
 		connectOptions: connectOptions,
 	}
@@ -184,46 +183,26 @@ func buildUpsertDoc(doc bson.M, newRow []interface{}, rowsEvent *canal.RowsEvent
 			}
 		}
 	}
-
 	if len(rule.NewColumnsConfig) > 0 {
-		columnValueMap := make(pongo2.Context)
-		for index, column := range rowsEvent.Table.Columns {
-			columnValueMap[column.Name] = newRow[index]
-		}
 		for _, newColumn := range rule.NewColumnsConfig {
-			var newValue string
-			fmt.Print(newColumn.Templ)
-			if newColumn.Templ {
-				tpl, err := pongo2.FromString(newColumn.Value)
-				if err != nil {
-					logger.Logger.WithError(err).Error("Failed to parse new column value template")
-				}
-				newValue, err = tpl.Execute(columnValueMap)
-				if err != nil {
-					logger.Logger.WithError(err).Error("Failed to execute new column value template")
-				}
-			} else {
-				newValue = newColumn.Value
-			}
-
 			if newColumn.Type == "int" {
-				intValue, err := strconv.Atoi(newValue)
+				intValue, err := strconv.Atoi(newColumn.Value)
 				if err != nil {
 					logger.Logger.WithError(err).Error("Failed to convert string to int")
 					continue
 				}
 				doc[newColumn.Name] = intValue
 			} else if newColumn.Type == "string" {
-				doc[newColumn.Name] = newValue
+				doc[newColumn.Name] = newColumn.Value
 			} else if newColumn.Type == "float" {
-				floatValue, err := strconv.ParseFloat(newValue, 64)
+				floatValue, err := strconv.ParseFloat(newColumn.Value, 64)
 				if err != nil {
 					logger.Logger.WithError(err).Error("Failed to convert string to float")
 					continue
 				}
 				doc[newColumn.Name] = floatValue
 			} else if newColumn.Type == "bool" {
-				boolValue, err := strconv.ParseBool(newValue)
+				boolValue, err := strconv.ParseBool(newColumn.Value)
 				if err != nil {
 					logger.Logger.WithError(err).Error("Failed to convert string to bool")
 					continue

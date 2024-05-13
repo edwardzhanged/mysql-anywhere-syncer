@@ -2,9 +2,9 @@ package services
 
 import (
 	"fmt"
-	"mysql-mongodb-syncer/global"
-	"mysql-mongodb-syncer/syncer"
-	"mysql-mongodb-syncer/utils/logger"
+	"mysql-anywhere-syncer/global"
+	"mysql-anywhere-syncer/syncer"
+	"mysql-anywhere-syncer/utils/logger"
 
 	"github.com/go-mysql-org/go-mysql/canal"
 	"github.com/go-mysql-org/go-mysql/mysql"

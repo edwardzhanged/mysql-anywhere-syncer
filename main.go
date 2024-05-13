@@ -1,7 +1,7 @@
 package main
 
 import (
-	"mysql-mongodb-syncer/cmd"
+	"mysql-anywhere-syncer/cmd"
 )
 
 func main() {

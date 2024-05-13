@@ -1,8 +1,8 @@
 package services
 
 import (
-	"mysql-mongodb-syncer/global"
-	"mysql-mongodb-syncer/utils/logger"
+	"mysql-anywhere-syncer/global"
+	"mysql-anywhere-syncer/utils/logger"
 
 	"github.com/go-mysql-org/go-mysql/canal"
 )

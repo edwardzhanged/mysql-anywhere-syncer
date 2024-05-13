@@ -6,11 +6,11 @@ import (
 	"os/signal"
 	"syscall"
 
-	"mysql-mongodb-syncer/global"
-	"mysql-mongodb-syncer/services"
-	"mysql-mongodb-syncer/syncer"
+	"mysql-anywhere-syncer/global"
+	"mysql-anywhere-syncer/services"
+	"mysql-anywhere-syncer/syncer"
 
-	"mysql-mongodb-syncer/utils/logger"
+	"mysql-anywhere-syncer/utils/logger"
 
 	"github.com/fsnotify/fsnotify"
 	"github.com/gookit/color"
@@ -63,14 +63,23 @@ func rootCmdRun(cmd *cobra.Command, args []string) {
 	for _, rule := range targets {
 		switch rule.Target {
 		case global.TargetMongoDB:
-			syncer.NewMongo(&syncer.ConnectOptions{
+			syncer.NewMongo(&syncer.MongoConnectOptions{
 				Host:     global.GbConfig.MongodbHost,
 				Port:     global.GbConfig.MongodbPort,
 				Username: global.GbConfig.MongodbUsername,
 				Password: global.GbConfig.MongodbPassword,
 			})
 			if err := syncer.MongoInstance.Connect(); err != nil {
-				logger.Logger.WithError(err).Fatal("Failed to connect to mongodb")
+				logger.Logger.WithError(err).Fatal("Failed to connect to MongoDB")
+			}
+		case global.TargetRedis:
+			syncer.NewRedis(&syncer.RedisConnectOptions{
+				Host:     global.GbConfig.RedisHost,
+				Port:     global.GbConfig.RedisPort,
+				Password: global.GbConfig.RedisPass,
+			})
+			if err := syncer.RedisInstance.Connect(); err != nil {
+				logger.Logger.WithError(err).Fatal("Failed to connect to Redis")
 			}
 		default:
 		}

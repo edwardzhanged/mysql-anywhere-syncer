@@ -1,7 +1,7 @@
 package global
 
 import (
-	"mysql-mongodb-syncer/utils/logger"
+	"mysql-anywhere-syncer/utils/logger"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/spf13/viper"
@@ -16,17 +16,17 @@ type Config struct {
 
 	RuleConfigs []*Rule `mapstructure:"rule" validate:"required,dive"`
 
-	// ------------------- MONGODB -----------------
+	// ------------------- MongoDB -----------------
 	MongodbHost     string `mapstructure:"mongodb_host"`
 	MongodbUsername string `mapstructure:"mongodb_username"`
 	MongodbPassword string `mapstructure:"mongodb_password"`
 	MongodbPort     int    `mapstructure:"mongodb_port"`
 
-	// ------------------- MYSQL -----------------
-	MysqlHost     string `mapstructure:"mysql_host"`
-	MysqlUsername string `mapstructure:"mysql_username"`
-	MysqlPassword string `mapstructure:"mysql_password"`
-	MysqlPort     int    `mapstructure:"mysql_port"`
+	// ------------------- Redis -----------------
+	RedisHost     string `mapstructure:"redis_host"`
+	RedisPort     int    `mapstructure:"redis_port"`
+	RedisPass     string `mapstructure:"redis_pass"`
+	RedisDatabase int    `mapstructure:"redis_db"`
 }
 
 var (
